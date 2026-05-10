@@ -1,0 +1,1414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>WanderNest — Travel Planning</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --sand: #F5EFE0;
+    --cream: #FBF8F2;
+    --ink: #1A1410;
+    --terra: #C4622D;
+    --sage: #5A7A62;
+    --dusk: #8B6E52;
+    --sky: #4A7FA5;
+    --warm-gray: #E8E0D4;
+    --muted: #9A8E82;
+    --danger: #C0392B;
+    --success: #2ECC71;
+    --card-shadow: 0 4px 24px rgba(26,20,16,0.10);
+    --card-shadow-hover: 0 12px 40px rgba(26,20,16,0.18);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  h1,h2,h3,h4 { font-family: 'Playfair Display', serif; }
+
+  /* ── PAGES ── */
+  .page { display: none; min-height: 100vh; }
+  .page.active { display: flex; flex-direction: column; }
+
+  /* ──────────────── LANDING / AUTH ──────────────── */
+  #page-landing {
+    background: var(--ink);
+    position: relative;
+    overflow: hidden;
+  }
+  .landing-bg {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 70% 40%, #3a2a1a 0%, #1A1410 60%);
+  }
+  .landing-pattern {
+    position: absolute; inset: 0;
+    background-image:
+      repeating-linear-gradient(45deg, transparent, transparent 40px, rgba(196,98,45,0.04) 40px, rgba(196,98,45,0.04) 41px),
+      repeating-linear-gradient(-45deg, transparent, transparent 40px, rgba(90,122,98,0.04) 40px, rgba(90,122,98,0.04) 41px);
+  }
+  .landing-inner {
+    position: relative; z-index: 2;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-height: 100vh; padding: 40px 20px;
+  }
+  .brand-lockup { text-align: center; margin-bottom: 52px; }
+  .brand-logo {
+    width: 64px; height: 64px; border-radius: 16px;
+    background: linear-gradient(135deg, var(--terra), #E8823D);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 32px; margin-bottom: 20px;
+    box-shadow: 0 8px 32px rgba(196,98,45,0.35);
+  }
+  .brand-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 48px; font-weight: 900;
+    color: #fff; letter-spacing: -1px;
+    line-height: 1;
+  }
+  .brand-name span { color: var(--terra); }
+  .brand-tagline {
+    color: var(--muted); font-size: 15px; margin-top: 10px; letter-spacing: 2px; text-transform: uppercase;
+  }
+  .auth-card {
+    background: var(--cream);
+    border-radius: 24px;
+    padding: 40px 44px;
+    width: 100%; max-width: 420px;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.4);
+  }
+  .auth-tabs { display: flex; gap: 0; margin-bottom: 28px; border-radius: 12px; overflow: hidden; background: var(--warm-gray); padding: 4px; }
+  .auth-tab {
+    flex: 1; padding: 10px 0; text-align: center; cursor: pointer;
+    border-radius: 9px; font-size: 14px; font-weight: 500; transition: all .2s;
+    color: var(--muted);
+  }
+  .auth-tab.active { background: #fff; color: var(--ink); box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  .auth-form { display: none; flex-direction: column; gap: 16px; }
+  .auth-form.active { display: flex; }
+  .field-label { font-size: 12px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; color: var(--dusk); margin-bottom: 6px; }
+  .field-input {
+    width: 100%; padding: 12px 16px; border-radius: 10px;
+    border: 1.5px solid var(--warm-gray); background: #fff;
+    font-family: 'DM Sans', sans-serif; font-size: 15px; color: var(--ink);
+    outline: none; transition: border-color .2s;
+  }
+  .field-input:focus { border-color: var(--terra); }
+  .btn-primary {
+    padding: 14px 28px; border-radius: 12px; border: none; cursor: pointer;
+    background: linear-gradient(135deg, var(--terra), #E8823D);
+    color: #fff; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600;
+    letter-spacing: .3px; transition: all .2s;
+    box-shadow: 0 4px 16px rgba(196,98,45,0.35);
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(196,98,45,0.45); }
+  .btn-secondary {
+    padding: 10px 22px; border-radius: 10px; border: 1.5px solid var(--warm-gray); cursor: pointer;
+    background: transparent; color: var(--ink);
+    font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; transition: all .2s;
+  }
+  .btn-secondary:hover { background: var(--warm-gray); }
+  .btn-danger {
+    padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer;
+    background: var(--danger); color: #fff;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; transition: all .2s;
+  }
+  .btn-danger:hover { opacity: 0.85; }
+  .auth-divider { text-align: center; color: var(--muted); font-size: 13px; }
+  .demo-hint { color: var(--muted); font-size: 12px; text-align: center; margin-top: 8px; }
+  .demo-hint strong { color: var(--terra); }
+
+  /* ──────────────── COMMON LAYOUT ──────────────── */
+  .topbar {
+    background: #fff; border-bottom: 1px solid var(--warm-gray);
+    padding: 0 32px; height: 64px; display: flex; align-items: center;
+    justify-content: space-between; position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 1px 8px rgba(26,20,16,0.06);
+  }
+  .topbar-brand { display: flex; align-items: center; gap: 10px; }
+  .topbar-logo {
+    width: 36px; height: 36px; border-radius: 8px;
+    background: linear-gradient(135deg, var(--terra), #E8823D);
+    display: flex; align-items: center; justify-content: center; font-size: 18px;
+  }
+  .topbar-name { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; }
+  .topbar-name span { color: var(--terra); }
+  .topbar-actions { display: flex; align-items: center; gap: 16px; }
+  .avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--sage), #7AAB85);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 600; font-size: 14px; cursor: pointer;
+  }
+  .badge {
+    display: inline-block; padding: 2px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 600; letter-spacing: .5px; text-transform: uppercase;
+  }
+  .badge-admin { background: rgba(196,98,45,0.12); color: var(--terra); }
+  .badge-user { background: rgba(90,122,98,0.12); color: var(--sage); }
+  .main-content { flex: 1; padding: 32px; max-width: 1200px; margin: 0 auto; width: 100%; }
+  .sidebar-layout { display: grid; grid-template-columns: 240px 1fr; gap: 28px; align-items: start; }
+  .sidebar {
+    background: #fff; border-radius: 16px; padding: 20px 0;
+    box-shadow: var(--card-shadow); position: sticky; top: 84px;
+  }
+  .sidebar-section { padding: 8px 16px; margin-bottom: 4px; }
+  .sidebar-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); padding: 8px 16px 4px; }
+  .sidebar-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 16px; border-radius: 10px; cursor: pointer;
+    font-size: 14px; font-weight: 500; color: var(--ink);
+    transition: all .15s; margin: 2px 8px;
+  }
+  .sidebar-item:hover { background: var(--sand); }
+  .sidebar-item.active { background: linear-gradient(135deg, rgba(196,98,45,0.12), rgba(232,130,61,0.08)); color: var(--terra); font-weight: 600; }
+  .sidebar-item .icon { font-size: 18px; }
+  .content-area { display: flex; flex-direction: column; gap: 24px; }
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+  .section-title { font-size: 26px; font-weight: 700; }
+  .section-subtitle { color: var(--muted); font-size: 14px; margin-top: 2px; }
+
+  /* ──────────────── CARDS ──────────────── */
+  .card {
+    background: #fff; border-radius: 16px; padding: 24px;
+    box-shadow: var(--card-shadow); transition: box-shadow .2s;
+  }
+  .card:hover { box-shadow: var(--card-shadow-hover); }
+  .card-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap: 16px; }
+  .stat-card {
+    background: #fff; border-radius: 14px; padding: 20px;
+    box-shadow: var(--card-shadow); border-left: 4px solid transparent;
+  }
+  .stat-card.terra { border-color: var(--terra); }
+  .stat-card.sage { border-color: var(--sage); }
+  .stat-card.sky { border-color: var(--sky); }
+  .stat-card.dusk { border-color: var(--dusk); }
+  .stat-value { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 700; }
+  .stat-label { color: var(--muted); font-size: 12px; font-weight: 500; letter-spacing: .5px; margin-top: 4px; text-transform: uppercase; }
+
+  /* ──────────────── TRIP CARDS ──────────────── */
+  .trips-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+  .trip-card {
+    background: #fff; border-radius: 16px; overflow: hidden;
+    box-shadow: var(--card-shadow); transition: all .25s; cursor: pointer;
+  }
+  .trip-card:hover { transform: translateY(-4px); box-shadow: var(--card-shadow-hover); }
+  .trip-card-banner {
+    height: 120px; display: flex; align-items: center; justify-content: center;
+    font-size: 48px; position: relative; overflow: hidden;
+  }
+  .trip-card-body { padding: 18px; }
+  .trip-destination { font-family: 'Playfair Display', serif; font-size: 19px; font-weight: 700; }
+  .trip-dates { color: var(--muted); font-size: 13px; margin-top: 4px; }
+  .trip-meta { display: flex; gap: 12px; margin-top: 14px; }
+  .trip-pill {
+    padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500;
+    background: var(--sand); color: var(--dusk);
+  }
+  .trip-actions { display: flex; gap: 8px; margin-top: 16px; }
+
+  /* ──────────────── ITINERARY ──────────────── */
+  .day-block {
+    background: #fff; border-radius: 14px; padding: 20px;
+    box-shadow: var(--card-shadow); margin-bottom: 16px;
+  }
+  .day-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .day-number {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--terra), #E8823D);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 700; font-size: 15px; flex-shrink: 0;
+  }
+  .day-title { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; }
+  .activity-item {
+    display: flex; gap: 12px; padding: 10px 0;
+    border-bottom: 1px solid var(--warm-gray); align-items: flex-start;
+  }
+  .activity-item:last-child { border-bottom: none; }
+  .activity-time { color: var(--muted); font-size: 12px; font-weight: 600; min-width: 48px; padding-top: 2px; }
+  .activity-content { flex: 1; }
+  .activity-name { font-weight: 500; font-size: 14px; }
+  .activity-note { color: var(--muted); font-size: 12px; margin-top: 2px; }
+  .activity-type-icon { font-size: 20px; flex-shrink: 0; }
+
+  /* ──────────────── MODALS ──────────────── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(26,20,16,0.5);
+    backdrop-filter: blur(4px); z-index: 1000;
+    align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--cream); border-radius: 20px; padding: 32px;
+    max-width: 540px; width: 100%; max-height: 90vh; overflow-y: auto;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.3);
+    animation: modalIn .25s ease;
+  }
+  @keyframes modalIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .modal-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  .modal-subtitle { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .field-group { display: flex; flex-direction: column; }
+
+  /* ──────────────── TABLES ──────────────── */
+  .table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid var(--warm-gray); }
+  table { width: 100%; border-collapse: collapse; }
+  thead { background: var(--sand); }
+  th { padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: var(--dusk); }
+  td { padding: 14px 16px; border-top: 1px solid var(--warm-gray); font-size: 14px; vertical-align: middle; }
+  tr:hover td { background: rgba(245,239,224,0.5); }
+
+  /* ──────────────── DOCS ──────────────── */
+  .doc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px,1fr)); gap: 16px; }
+  .doc-card {
+    background: #fff; border-radius: 12px; padding: 16px;
+    box-shadow: var(--card-shadow); text-align: center; cursor: pointer;
+    transition: all .2s; border: 2px solid transparent;
+  }
+  .doc-card:hover { border-color: var(--terra); transform: translateY(-2px); }
+  .doc-icon { font-size: 40px; margin-bottom: 8px; }
+  .doc-name { font-size: 13px; font-weight: 500; word-break: break-word; }
+  .doc-size { color: var(--muted); font-size: 11px; margin-top: 4px; }
+
+  /* ──────────────── PACKING REMINDER ──────────────── */
+  .reminder-banner {
+    background: linear-gradient(135deg, #FFF3E0, #FFE0B2);
+    border: 1px solid #FFCC80; border-radius: 14px; padding: 20px 24px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .reminder-icon { font-size: 32px; }
+  .reminder-text h3 { font-size: 16px; font-weight: 600; color: #E65100; }
+  .reminder-text p { color: #BF360C; font-size: 13px; margin-top: 4px; }
+
+  /* ──────────────── TOAST ──────────────── */
+  #toast {
+    position: fixed; bottom: 32px; right: 32px; z-index: 9999;
+    background: var(--ink); color: #fff; padding: 14px 22px; border-radius: 12px;
+    font-size: 14px; font-weight: 500; pointer-events: none;
+    transform: translateY(20px); opacity: 0; transition: all .3s;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3); max-width: 320px;
+  }
+  #toast.show { transform: translateY(0); opacity: 1; }
+  #toast.success { background: var(--sage); }
+  #toast.error { background: var(--danger); }
+
+  /* ──────────────── EMPTY STATES ──────────────── */
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
+  .empty-state .empty-icon { font-size: 56px; margin-bottom: 16px; }
+  .empty-state h3 { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--ink); margin-bottom: 8px; }
+
+  /* ──────────────── RESPONSIVE ──────────────── */
+  @media (max-width: 768px) {
+    .sidebar-layout { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .main-content { padding: 16px; }
+    .form-row { grid-template-columns: 1fr; }
+    .topbar { padding: 0 16px; }
+    .stat-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  /* ──────────────── SCROLLBAR ──────────────── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--warm-gray); border-radius: 3px; }
+
+  /* ──────────────── ADMIN ACCENT ──────────────── */
+  .admin-sidebar .sidebar-item.active {
+    background: linear-gradient(135deg, rgba(196,98,45,0.12), rgba(232,130,61,0.08));
+    color: var(--terra);
+  }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .status-dot.active { background: var(--success); }
+  .status-dot.inactive { background: var(--muted); }
+
+  /* ──────────────── PACKING LIST ──────────────── */
+  .packing-category { margin-bottom: 20px; }
+  .packing-category-title { font-weight: 600; font-size: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+  .packing-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px dashed var(--warm-gray); }
+  .packing-item:last-child { border-bottom: none; }
+  .packing-item input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--terra); cursor: pointer; }
+  .packing-item label { font-size: 14px; cursor: pointer; }
+  .packing-item label.checked { text-decoration: line-through; color: var(--muted); }
+
+  /* ──────────────── TIMELINE ──────────────── */
+  .timeline { position: relative; padding-left: 28px; }
+  .timeline::before { content:''; position:absolute; left:8px; top:0; bottom:0; width:2px; background: var(--warm-gray); }
+  .timeline-item { position: relative; margin-bottom: 20px; }
+  .timeline-dot { position: absolute; left: -24px; top: 4px; width: 14px; height: 14px; border-radius: 50%; background: var(--terra); border: 2px solid #fff; box-shadow: 0 0 0 2px var(--terra); }
+  .timeline-content { background: #fff; border-radius: 10px; padding: 12px 16px; box-shadow: var(--card-shadow); }
+  .timeline-date { font-size: 11px; color: var(--muted); font-weight: 600; letter-spacing: .5px; }
+  .timeline-text { font-size: 13px; margin-top: 2px; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!--  PAGE: LANDING / AUTH                                       -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div id="page-landing" class="page active">
+  <div class="landing-bg"></div>
+  <div class="landing-pattern"></div>
+  <div class="landing-inner">
+    <div class="brand-lockup">
+      <div class="brand-logo">🪺</div>
+      <div class="brand-name">Wander<span>Nest</span></div>
+      <div class="brand-tagline">Your personal travel planning companion</div>
+    </div>
+
+    <div class="auth-card">
+      <div class="auth-tabs">
+        <div class="auth-tab active" onclick="switchAuthTab('login')">Sign In</div>
+        <div class="auth-tab" onclick="switchAuthTab('register')">Create Account</div>
+      </div>
+
+      <!-- LOGIN -->
+      <div class="auth-form active" id="form-login">
+        <div class="field-group">
+          <div class="field-label">Email Address</div>
+          <input class="field-input" type="email" id="login-email" placeholder="you@example.com"/>
+        </div>
+        <div class="field-group">
+          <div class="field-label">Password</div>
+          <input class="field-input" type="password" id="login-password" placeholder="••••••••" onkeydown="if(event.key==='Enter')handleLogin()"/>
+        </div>
+        <button class="btn-primary" type="button" onclick="handleLogin()">Sign In →</button>
+        <div class="demo-hint">
+          Demo — User: <strong>user@wander.com</strong> / <strong>pass123</strong><br/>
+          Admin: <strong>admin@wander.com</strong> / <strong>admin123</strong>
+        </div>
+      </div>
+
+      <!-- REGISTER -->
+      <div class="auth-form" id="form-register">
+        <div class="form-row">
+          <div class="field-group">
+            <div class="field-label">First Name</div>
+            <input class="field-input" type="text" id="reg-firstname" placeholder="Amara"/>
+          </div>
+          <div class="field-group">
+            <div class="field-label">Last Name</div>
+            <input class="field-input" type="text" id="reg-lastname" placeholder="Patel"/>
+          </div>
+        </div>
+        <div class="field-group">
+          <div class="field-label">Email Address</div>
+          <input class="field-input" type="email" id="reg-email" placeholder="you@example.com"/>
+        </div>
+        <div class="field-group">
+          <div class="field-label">Password</div>
+          <input class="field-input" type="password" id="reg-password" placeholder="Min. 6 characters" onkeydown="if(event.key==='Enter')handleRegister()"/>
+        </div>
+        <button class="btn-primary" type="button" onclick="handleRegister()">Create Account →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!--  PAGE: USER DASHBOARD                                       -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div id="page-user" class="page">
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-brand">
+      <div class="topbar-logo">🪺</div>
+      <div class="topbar-name">Wander<span>Nest</span></div>
+    </div>
+    <div class="topbar-actions">
+      <span class="badge badge-user">Traveller</span>
+      <div class="avatar" id="user-avatar" onclick="logout()">U</div>
+    </div>
+  </div>
+
+  <div class="main-content">
+    <div class="sidebar-layout">
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <div class="sidebar-label">Navigation</div>
+        <div class="sidebar-item active" onclick="userNav('dashboard', this)"><span class="icon">🏠</span> Dashboard</div>
+        <div class="sidebar-item" onclick="userNav('trips', this)"><span class="icon">🗺️</span> My Trips</div>
+        <div class="sidebar-item" onclick="userNav('itinerary', this)"><span class="icon">📅</span> Itinerary</div>
+        <div class="sidebar-item" onclick="userNav('documents', this)"><span class="icon">📁</span> Documents</div>
+        <div class="sidebar-item" onclick="userNav('packing', this)"><span class="icon">🎒</span> Packing List</div>
+        <div class="sidebar-label">Account</div>
+        <div class="sidebar-item" onclick="logout()"><span class="icon">🚪</span> Sign Out</div>
+      </div>
+
+      <!-- Content -->
+      <div class="content-area">
+
+        <!-- DASHBOARD -->
+        <div id="user-dashboard" class="user-section">
+          <div class="section-header">
+            <div>
+              <div class="section-title" id="user-greeting">Good morning ✨</div>
+              <div class="section-subtitle">Here's your travel overview</div>
+            </div>
+            <button class="btn-primary" onclick="openModal('modal-new-trip')">+ New Trip</button>
+          </div>
+
+          <div id="reminder-area"></div>
+
+          <div class="stat-grid">
+            <div class="stat-card terra">
+              <div class="stat-value" id="stat-trips">0</div>
+              <div class="stat-label">Total Trips</div>
+            </div>
+            <div class="stat-card sage">
+              <div class="stat-value" id="stat-upcoming">0</div>
+              <div class="stat-label">Upcoming</div>
+            </div>
+            <div class="stat-card sky">
+              <div class="stat-value" id="stat-docs">0</div>
+              <div class="stat-label">Documents</div>
+            </div>
+            <div class="stat-card dusk">
+              <div class="stat-value" id="stat-days">0</div>
+              <div class="stat-label">Days Planned</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">📍 Recent Activity</div>
+            <div class="timeline" id="user-activity-timeline"></div>
+          </div>
+        </div>
+
+        <!-- TRIPS -->
+        <div id="user-trips" class="user-section" style="display:none;">
+          <div class="section-header">
+            <div>
+              <div class="section-title">My Trips</div>
+              <div class="section-subtitle">All your planned adventures</div>
+            </div>
+            <button class="btn-primary" onclick="openModal('modal-new-trip')">+ Add Trip</button>
+          </div>
+          <div class="trips-grid" id="trips-grid"></div>
+        </div>
+
+        <!-- ITINERARY -->
+        <div id="user-itinerary" class="user-section" style="display:none;">
+          <div class="section-header">
+            <div>
+              <div class="section-title">Day-by-Day Itinerary</div>
+              <div class="section-subtitle" id="itinerary-trip-name">Select a trip to view itinerary</div>
+            </div>
+            <button class="btn-primary" onclick="openModal('modal-add-activity')">+ Add Activity</button>
+          </div>
+          <div id="itinerary-days"></div>
+        </div>
+
+        <!-- DOCUMENTS -->
+        <div id="user-documents" class="user-section" style="display:none;">
+          <div class="section-header">
+            <div>
+              <div class="section-title">Documents</div>
+              <div class="section-subtitle">Visas, tickets, confirmations</div>
+            </div>
+            <button class="btn-primary" onclick="openModal('modal-upload-doc')">+ Upload</button>
+          </div>
+          <div class="doc-grid" id="doc-grid"></div>
+        </div>
+
+        <!-- PACKING LIST -->
+        <div id="user-packing" class="user-section" style="display:none;">
+          <div class="section-header">
+            <div>
+              <div class="section-title">Packing List</div>
+              <div class="section-subtitle">Essentials for your trip</div>
+            </div>
+            <button class="btn-primary" onclick="openModal('modal-add-item')">+ Add Item</button>
+          </div>
+          <div id="packing-list-area"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!--  PAGE: ADMIN DASHBOARD                                      -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div id="page-admin" class="page">
+  <div class="topbar">
+    <div class="topbar-brand">
+      <div class="topbar-logo">🪺</div>
+      <div class="topbar-name">Wander<span>Nest</span></div>
+    </div>
+    <div class="topbar-actions">
+      <span class="badge badge-admin">Admin</span>
+      <div class="avatar" style="background: linear-gradient(135deg, var(--terra), #E8823D);" onclick="logout()">A</div>
+    </div>
+  </div>
+
+  <div class="main-content">
+    <div class="sidebar-layout">
+      <div class="sidebar admin-sidebar">
+        <div class="sidebar-label">Admin Panel</div>
+        <div class="sidebar-item active" onclick="adminNav('overview', this)"><span class="icon">📊</span> Overview</div>
+        <div class="sidebar-item" onclick="adminNav('users', this)"><span class="icon">👥</span> Users</div>
+        <div class="sidebar-item" onclick="adminNav('trips', this)"><span class="icon">🗺️</span> All Trips</div>
+        <div class="sidebar-item" onclick="adminNav('reminders', this)"><span class="icon">🔔</span> Reminders</div>
+        <div class="sidebar-label">System</div>
+        <div class="sidebar-item" onclick="logout()"><span class="icon">🚪</span> Sign Out</div>
+      </div>
+
+      <div class="content-area">
+
+        <!-- OVERVIEW -->
+        <div id="admin-overview" class="admin-section">
+          <div class="section-header">
+            <div>
+              <div class="section-title">Platform Overview</div>
+              <div class="section-subtitle">WanderNest system metrics</div>
+            </div>
+          </div>
+
+          <div class="stat-grid">
+            <div class="stat-card terra">
+              <div class="stat-value" id="a-stat-users">0</div>
+              <div class="stat-label">Registered Users</div>
+            </div>
+            <div class="stat-card sage">
+              <div class="stat-value" id="a-stat-trips">0</div>
+              <div class="stat-label">Total Trips</div>
+            </div>
+            <div class="stat-card sky">
+              <div class="stat-value" id="a-stat-docs">0</div>
+              <div class="stat-label">Documents</div>
+            </div>
+            <div class="stat-card dusk">
+              <div class="stat-value" id="a-stat-reminders">0</div>
+              <div class="stat-label">Reminders Sent</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">📋 Recent Registrations</div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Name</th><th>Email</th><th>Joined</th><th>Trips</th><th>Status</th></tr></thead>
+                <tbody id="admin-recent-users"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- USERS -->
+        <div id="admin-users" class="admin-section" style="display:none;">
+          <div class="section-header">
+            <div>
+              <div class="section-title">User Management</div>
+              <div class="section-subtitle">All registered travellers</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>User</th><th>Email</th><th>Joined</th><th>Trips</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody id="admin-users-table"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TRIPS -->
+        <div id="admin-trips" class="admin-section" style="display:none;">
+          <div class="section-header">
+            <div>
+              <div class="section-title">All Trips</div>
+              <div class="section-subtitle">Trips created across the platform</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Destination</th><th>User</th><th>Departure</th><th>Return</th><th>Days</th><th>Actions</th></tr></thead>
+                <tbody id="admin-trips-table"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- REMINDERS -->
+        <div id="admin-reminders" class="admin-section" style="display:none;">
+          <div class="section-header">
+            <div>
+              <div class="section-title">Packing Reminders</div>
+              <div class="section-subtitle">Automated 48-hour pre-departure emails</div>
+            </div>
+            <button class="btn-primary" onclick="runReminderCheck()">▶ Run Check Now</button>
+          </div>
+          <div class="card" style="margin-bottom:20px;">
+            <div class="card-title">⚙️ Reminder Engine Status</div>
+            <p style="font-size:14px; color:var(--muted); margin-bottom:12px;">The reminder engine automatically sends packing list emails 48 hours before each trip's departure. Triggers run every hour in production.</p>
+            <div style="display:flex; gap:12px; flex-wrap:wrap;">
+              <div style="background:var(--sand);border-radius:10px;padding:14px 20px;">
+                <div style="font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:600;">Engine</div>
+                <div style="font-size:18px;font-weight:700;color:var(--sage);margin-top:4px;">🟢 Running</div>
+              </div>
+              <div style="background:var(--sand);border-radius:10px;padding:14px 20px;">
+                <div style="font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:600;">Last Run</div>
+                <div style="font-size:18px;font-weight:700;color:var(--ink);margin-top:4px;" id="last-run-time">—</div>
+              </div>
+              <div style="background:var(--sand);border-radius:10px;padding:14px 20px;">
+                <div style="font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:600;">Emails Sent</div>
+                <div style="font-size:18px;font-weight:700;color:var(--terra);margin-top:4px;" id="emails-sent-count">0</div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">📬 Reminder Log</div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>User</th><th>Trip</th><th>Departure</th><th>Sent At</th><th>Status</th></tr></thead>
+                <tbody id="reminder-log"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!--  MODALS                                                     -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<!-- New Trip Modal -->
+<div class="modal-overlay" id="modal-new-trip">
+  <div class="modal">
+    <div class="modal-title">✈️ Plan a New Trip</div>
+    <div class="modal-subtitle">Start building your itinerary</div>
+    <div class="field-group" style="margin-bottom:14px;">
+      <div class="field-label">Destination</div>
+      <input class="field-input" id="trip-dest" placeholder="e.g. Bali, Indonesia"/>
+    </div>
+    <div class="form-row" style="margin-bottom:14px;">
+      <div class="field-group">
+        <div class="field-label">Departure Date</div>
+        <input class="field-input" type="date" id="trip-depart"/>
+      </div>
+      <div class="field-group">
+        <div class="field-label">Return Date</div>
+        <input class="field-input" type="date" id="trip-return"/>
+      </div>
+    </div>
+    <div class="field-group" style="margin-bottom:14px;">
+      <div class="field-label">Travel Emoji 🌏</div>
+      <input class="field-input" id="trip-emoji" placeholder="e.g. 🏝️ 🗼 🏔️" maxlength="4"/>
+    </div>
+    <div class="field-group">
+      <div class="field-label">Notes</div>
+      <input class="field-input" id="trip-notes" placeholder="Honeymoon, solo adventure, family trip…"/>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('modal-new-trip')">Cancel</button>
+      <button class="btn-primary" onclick="createTrip()">Create Trip →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Activity Modal -->
+<div class="modal-overlay" id="modal-add-activity">
+  <div class="modal">
+    <div class="modal-title">📍 Add Activity</div>
+    <div class="modal-subtitle">Plan what you'll do each day</div>
+    <div class="form-row" style="margin-bottom:14px;">
+      <div class="field-group">
+        <div class="field-label">Day</div>
+        <select class="field-input" id="activity-day" style="cursor:pointer;"></select>
+      </div>
+      <div class="field-group">
+        <div class="field-label">Time</div>
+        <input class="field-input" type="time" id="activity-time" value="09:00"/>
+      </div>
+    </div>
+    <div class="field-group" style="margin-bottom:14px;">
+      <div class="field-label">Activity Name</div>
+      <input class="field-input" id="activity-name" placeholder="e.g. Visit Tanah Lot Temple"/>
+    </div>
+    <div class="form-row" style="margin-bottom:14px;">
+      <div class="field-group">
+        <div class="field-label">Type</div>
+        <select class="field-input" id="activity-type" style="cursor:pointer;">
+          <option value="🏛️">Sightseeing 🏛️</option>
+          <option value="🍽️">Food & Dining 🍽️</option>
+          <option value="🚗">Transport 🚗</option>
+          <option value="🏨">Accommodation 🏨</option>
+          <option value="🎭">Entertainment 🎭</option>
+          <option value="🛍️">Shopping 🛍️</option>
+          <option value="🧘">Relaxation 🧘</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <div class="field-label">Duration</div>
+        <input class="field-input" id="activity-duration" placeholder="e.g. 2 hours"/>
+      </div>
+    </div>
+    <div class="field-group">
+      <div class="field-label">Notes</div>
+      <input class="field-input" id="activity-notes" placeholder="Book tickets in advance, wear sunscreen…"/>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('modal-add-activity')">Cancel</button>
+      <button class="btn-primary" onclick="addActivity()">Add Activity →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Upload Document Modal -->
+<div class="modal-overlay" id="modal-upload-doc">
+  <div class="modal">
+    <div class="modal-title">📁 Upload Document</div>
+    <div class="modal-subtitle">Visa, tickets, booking confirmations</div>
+    <div class="field-group" style="margin-bottom:14px;">
+      <div class="field-label">Document Name</div>
+      <input class="field-input" id="doc-name" placeholder="e.g. Indonesia Visa Copy"/>
+    </div>
+    <div class="field-group" style="margin-bottom:14px;">
+      <div class="field-label">Document Type</div>
+      <select class="field-input" id="doc-type" style="cursor:pointer;">
+        <option value="📋">Visa Copy 📋</option>
+        <option value="✈️">Flight Ticket ✈️</option>
+        <option value="🏨">Hotel Booking 🏨</option>
+        <option value="🛡️">Travel Insurance 🛡️</option>
+        <option value="📄">Other 📄</option>
+      </select>
+    </div>
+    <div class="field-group">
+      <div class="field-label">File (Simulated Upload)</div>
+      <input class="field-input" type="file" id="doc-file" accept=".pdf,.jpg,.png,.docx"/>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('modal-upload-doc')">Cancel</button>
+      <button class="btn-primary" onclick="uploadDoc()">Upload →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Packing Item Modal -->
+<div class="modal-overlay" id="modal-add-item">
+  <div class="modal">
+    <div class="modal-title">🎒 Add Packing Item</div>
+    <div class="modal-subtitle">Don't forget anything important</div>
+    <div class="form-row" style="margin-bottom:14px;">
+      <div class="field-group">
+        <div class="field-label">Category</div>
+        <select class="field-input" id="item-category" style="cursor:pointer;">
+          <option>👔 Clothing</option>
+          <option>🪥 Toiletries</option>
+          <option>💊 Health & Med</option>
+          <option>📱 Electronics</option>
+          <option>📄 Documents</option>
+          <option>🎮 Entertainment</option>
+          <option>🍱 Food & Snacks</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <div class="field-label">Item Name</div>
+        <input class="field-input" id="item-name" placeholder="e.g. Sunscreen SPF50"/>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('modal-add-item')">Cancel</button>
+      <button class="btn-primary" onclick="addPackingItem()">Add Item →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!--  JAVASCRIPT                                                 -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<script>
+// ─── STATE ─────────────────────────────────────────────────────
+let state = {
+  currentUser: null,
+  currentPage: 'landing',
+  users: [
+    { id: 1, email: 'user@wander.com', password: 'pass123', name: 'Amara Patel', role: 'user', joined: '2025-01-15', active: true },
+    { id: 2, email: 'admin@wander.com', password: 'admin123', name: 'Admin User', role: 'admin', joined: '2024-12-01', active: true },
+    { id: 3, email: 'jay@wander.com', password: 'pass123', name: 'Jay Mehta', role: 'user', joined: '2025-02-10', active: true },
+    { id: 4, email: 'sofia@wander.com', password: 'pass123', name: 'Sofia Reyes', role: 'user', joined: '2025-03-02', active: false },
+  ],
+  trips: [
+    { id: 1, userId: 1, destination: 'Bali, Indonesia', emoji: '🏝️', departure: '2025-08-15', returnDate: '2025-08-28', notes: 'Honeymoon trip' },
+    { id: 2, userId: 1, destination: 'Kyoto, Japan', emoji: '⛩️', departure: '2025-11-05', returnDate: '2025-11-14', notes: 'Autumn leaves season' },
+    { id: 3, userId: 3, destination: 'Paris, France', emoji: '🗼', departure: '2025-07-20', returnDate: '2025-07-28', notes: 'Anniversary' },
+  ],
+  activities: [
+    { id: 1, tripId: 1, day: 1, time: '09:00', name: 'Arrive at Ngurah Rai Airport', type: '✈️', duration: '', notes: 'Terminal 2 International' },
+    { id: 2, tripId: 1, day: 1, time: '14:00', name: 'Check-in at Ubud Komaneka', type: '🏨', duration: '30 min', notes: 'Confirmation #KOM2025' },
+    { id: 3, tripId: 1, day: 2, time: '08:00', name: 'Sunrise at Mount Batur', type: '🏛️', duration: '4 hours', notes: 'Book guide in advance' },
+    { id: 4, tripId: 1, day: 2, time: '13:00', name: 'Lunch at Locavore', type: '🍽️', duration: '2 hours', notes: 'Reserve table' },
+    { id: 5, tripId: 1, day: 3, time: '10:00', name: 'Tanah Lot Temple Visit', type: '🏛️', duration: '3 hours', notes: 'Wear sarong' },
+  ],
+  documents: [
+    { id: 1, userId: 1, name: 'Indonesia Visa Copy', type: '📋', size: '1.2 MB', date: '2025-04-10' },
+    { id: 2, userId: 1, name: 'Garuda Indonesia Ticket', type: '✈️', size: '856 KB', date: '2025-04-12' },
+    { id: 3, userId: 1, name: 'Komaneka Hotel Booking', type: '🏨', size: '420 KB', date: '2025-04-15' },
+  ],
+  packingItems: [
+    { id: 1, userId: 1, category: '👔 Clothing', name: 'Light linen shirts (5)', checked: false },
+    { id: 2, userId: 1, category: '👔 Clothing', name: 'Swim shorts', checked: false },
+    { id: 3, userId: 1, category: '🪥 Toiletries', name: 'Sunscreen SPF 50', checked: true },
+    { id: 4, userId: 1, category: '🪥 Toiletries', name: 'Insect repellent', checked: false },
+    { id: 5, userId: 1, category: '💊 Health & Med', name: 'Anti-diarrheal tablets', checked: false },
+    { id: 6, userId: 1, category: '📱 Electronics', name: 'Universal power adapter', checked: true },
+    { id: 7, userId: 1, category: '📄 Documents', name: 'Passport (check expiry!)', checked: false },
+    { id: 8, userId: 1, category: '📄 Documents', name: 'Travel insurance card', checked: false },
+  ],
+  reminderLog: [],
+  reminderCount: 0,
+  selectedTripId: 1,
+};
+
+// ─── AUTH ────────────────────────────────────────────────────────
+function switchAuthTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach((t, i) => t.classList.toggle('active', (i === 0 && tab==='login') || (i===1 && tab==='register')));
+  document.getElementById('form-login').classList.toggle('active', tab==='login');
+  document.getElementById('form-register').classList.toggle('active', tab==='register');
+}
+
+function handleLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-password').value;
+  if (!email || !pass) { showToast('Please enter your email and password', 'error'); return; }
+  const user = state.users.find(u => u.email === email && u.password === pass);
+  if (!user) { showToast('Invalid email or password', 'error'); return; }
+  if (!user.active) { showToast('Account is suspended. Contact admin.', 'error'); return; }
+  state.currentUser = user;
+  if (user.role === 'admin') loadAdminPage();
+  else loadUserPage();
+}
+
+function handleRegister() {
+  const fn = document.getElementById('reg-firstname').value.trim();
+  const ln = document.getElementById('reg-lastname').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const pass = document.getElementById('reg-password').value;
+  if (!fn || !ln || !email || !pass) { showToast('Please fill in all fields', 'error'); return; }
+  if (state.users.find(u => u.email === email)) { showToast('Email already registered!', 'error'); return; }
+  if (pass.length < 6) { showToast('Password must be at least 6 characters', 'error'); return; }
+  const newUser = { id: Date.now(), email, password: pass, name: `${fn} ${ln}`, role: 'user', joined: new Date().toISOString().split('T')[0], active: true };
+  state.users.push(newUser);
+  state.currentUser = newUser;
+  showToast(`Welcome to WanderNest, ${fn}! 🎉`, 'success');
+  loadUserPage();
+}
+
+function logout() {
+  state.currentUser = null;
+  showPage('page-landing');
+  document.getElementById('login-email').value = '';
+  document.getElementById('login-password').value = '';
+}
+
+// ─── PAGE MANAGEMENT ─────────────────────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function loadUserPage() {
+  showPage('page-user');
+  const u = state.currentUser;
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+  document.getElementById('user-greeting').textContent = `${greeting}, ${u.name.split(' ')[0]} ✨`;
+  document.getElementById('user-avatar').textContent = u.name[0].toUpperCase();
+  refreshUserStats();
+  renderTimeline();
+  checkReminder();
+}
+
+function loadAdminPage() {
+  showPage('page-admin');
+  refreshAdminStats();
+  renderAdminRecentUsers();
+  renderAdminUsers();
+  renderAdminTrips();
+}
+
+// ─── USER NAVIGATION ─────────────────────────────────────────────
+function userNav(section, el) {
+  document.querySelectorAll('#page-user .sidebar-item').forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.user-section').forEach(s => s.style.display = 'none');
+  document.getElementById(`user-${section}`).style.display = 'flex';
+  document.getElementById(`user-${section}`).style.flexDirection = 'column';
+  if (section === 'trips') renderTrips();
+  if (section === 'itinerary') renderItinerary();
+  if (section === 'documents') renderDocuments();
+  if (section === 'packing') renderPacking();
+  if (section === 'dashboard') { refreshUserStats(); renderTimeline(); checkReminder(); }
+}
+
+function adminNav(section, el) {
+  document.querySelectorAll('#page-admin .sidebar-item').forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.admin-section').forEach(s => s.style.display = 'none');
+  document.getElementById(`admin-${section}`).style.display = 'flex';
+  document.getElementById(`admin-${section}`).style.flexDirection = 'column';
+  if (section === 'overview') { refreshAdminStats(); renderAdminRecentUsers(); }
+  if (section === 'users') renderAdminUsers();
+  if (section === 'trips') renderAdminTrips();
+  if (section === 'reminders') renderReminderLog();
+}
+
+// ─── STATS ────────────────────────────────────────────────────────
+function refreshUserStats() {
+  const u = state.currentUser;
+  const myTrips = state.trips.filter(t => t.userId === u.id);
+  const upcoming = myTrips.filter(t => new Date(t.departure) >= new Date());
+  const docs = state.documents.filter(d => d.userId === u.id);
+  let days = 0;
+  myTrips.forEach(t => {
+    const d = Math.round((new Date(t.returnDate) - new Date(t.departure)) / 86400000);
+    days += d > 0 ? d : 0;
+  });
+  document.getElementById('stat-trips').textContent = myTrips.length;
+  document.getElementById('stat-upcoming').textContent = upcoming.length;
+  document.getElementById('stat-docs').textContent = docs.length;
+  document.getElementById('stat-days').textContent = days;
+}
+
+function refreshAdminStats() {
+  const users = state.users.filter(u => u.role === 'user');
+  document.getElementById('a-stat-users').textContent = users.length;
+  document.getElementById('a-stat-trips').textContent = state.trips.length;
+  document.getElementById('a-stat-docs').textContent = state.documents.length;
+  document.getElementById('a-stat-reminders').textContent = state.reminderCount;
+}
+
+// ─── TRIPS ────────────────────────────────────────────────────────
+const bannerColors = ['#FFE8D6','#D6EAD8','#D6E8F0','#EAD6EA','#EAE8D6','#D6EAEA'];
+
+function renderTrips() {
+  const u = state.currentUser;
+  const myTrips = state.trips.filter(t => t.userId === u.id);
+  const grid = document.getElementById('trips-grid');
+  if (!myTrips.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🗺️</div><h3>No trips yet</h3><p>Create your first adventure!</p></div>`;
+    return;
+  }
+  grid.innerHTML = myTrips.map((t, i) => {
+    const nights = Math.round((new Date(t.returnDate) - new Date(t.departure)) / 86400000);
+    const actCount = state.activities.filter(a => a.tripId === t.id).length;
+    const isPast = new Date(t.departure) < new Date();
+    return `<div class="trip-card" onclick="selectTrip(${t.id})">
+      <div class="trip-card-banner" style="background:${bannerColors[i%bannerColors.length]}">${t.emoji || '🌍'}</div>
+      <div class="trip-card-body">
+        <div class="trip-destination">${t.destination}</div>
+        <div class="trip-dates">📅 ${formatDate(t.departure)} → ${formatDate(t.returnDate)}</div>
+        <div class="trip-meta">
+          <span class="trip-pill">🌙 ${nights} nights</span>
+          <span class="trip-pill">📍 ${actCount} activities</span>
+        </div>
+        ${t.notes ? `<div style="font-size:12px;color:var(--muted);margin-top:10px;font-style:italic;">${t.notes}</div>` : ''}
+        <div class="trip-actions">
+          <button class="btn-secondary" style="font-size:12px;padding:6px 14px;" onclick="event.stopPropagation();selectTripItinerary(${t.id})">View Itinerary</button>
+          <button class="btn-danger" style="font-size:12px;padding:6px 14px;" onclick="event.stopPropagation();deleteTrip(${t.id})">Delete</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function createTrip() {
+  const dest = document.getElementById('trip-dest').value.trim();
+  const dep = document.getElementById('trip-depart').value;
+  const ret = document.getElementById('trip-return').value;
+  const emoji = document.getElementById('trip-emoji').value || '🌍';
+  const notes = document.getElementById('trip-notes').value.trim();
+  if (!dest || !dep || !ret) { showToast('Please fill in destination and dates', 'error'); return; }
+  if (new Date(ret) <= new Date(dep)) { showToast('Return date must be after departure', 'error'); return; }
+  const trip = { id: Date.now(), userId: state.currentUser.id, destination: dest, emoji, departure: dep, returnDate: ret, notes };
+  state.trips.push(trip);
+  state.selectedTripId = trip.id;
+  closeModal('modal-new-trip');
+  showToast(`Trip to ${dest} created! 🎉`, 'success');
+  refreshUserStats();
+  renderTrips();
+  document.getElementById('trip-dest').value = '';
+  document.getElementById('trip-depart').value = '';
+  document.getElementById('trip-return').value = '';
+  document.getElementById('trip-emoji').value = '';
+  document.getElementById('trip-notes').value = '';
+}
+
+function deleteTrip(id) {
+  if (!confirm('Delete this trip?')) return;
+  state.trips = state.trips.filter(t => t.id !== id);
+  state.activities = state.activities.filter(a => a.tripId !== id);
+  showToast('Trip deleted', '');
+  renderTrips();
+  refreshUserStats();
+}
+
+function selectTrip(id) {
+  state.selectedTripId = id;
+  showToast('Trip selected ✓', 'success');
+}
+
+function selectTripItinerary(id) {
+  state.selectedTripId = id;
+  document.querySelectorAll('#page-user .sidebar-item').forEach(i => i.classList.remove('active'));
+  document.querySelectorAll('#page-user .sidebar-item')[2].classList.add('active');
+  document.querySelectorAll('.user-section').forEach(s => s.style.display = 'none');
+  const sec = document.getElementById('user-itinerary');
+  sec.style.display = 'flex'; sec.style.flexDirection = 'column';
+  renderItinerary();
+}
+
+// ─── ITINERARY ────────────────────────────────────────────────────
+function renderItinerary() {
+  const trip = state.trips.find(t => t.id === state.selectedTripId && t.userId === state.currentUser.id)
+    || state.trips.filter(t => t.userId === state.currentUser.id)[0];
+  if (!trip) {
+    document.getElementById('itinerary-days').innerHTML = `<div class="empty-state"><div class="empty-icon">📅</div><h3>No trips found</h3><p>Create a trip first!</p></div>`;
+    return;
+  }
+  state.selectedTripId = trip.id;
+  document.getElementById('itinerary-trip-name').textContent = `${trip.emoji} ${trip.destination}`;
+  const nights = Math.round((new Date(trip.returnDate) - new Date(trip.departure)) / 86400000);
+  const days = document.getElementById('itinerary-days');
+  let html = '';
+  for (let d = 1; d <= nights; d++) {
+    const acts = state.activities.filter(a => a.tripId === trip.id && a.day === d).sort((a, b) => a.time.localeCompare(b.time));
+    const dayDate = new Date(trip.departure);
+    dayDate.setDate(dayDate.getDate() + d - 1);
+    html += `<div class="day-block">
+      <div class="day-header">
+        <div class="day-number">${d}</div>
+        <div>
+          <div class="day-title">Day ${d}</div>
+          <div style="font-size:12px;color:var(--muted);">${formatDate(dayDate.toISOString().split('T')[0])}</div>
+        </div>
+      </div>
+      ${acts.length ? acts.map(a => `
+        <div class="activity-item">
+          <div class="activity-time">${a.time}</div>
+          <div class="activity-type-icon">${a.type}</div>
+          <div class="activity-content">
+            <div class="activity-name">${a.name}</div>
+            ${a.notes ? `<div class="activity-note">${a.notes}</div>` : ''}
+            ${a.duration ? `<div class="activity-note">⏱ ${a.duration}</div>` : ''}
+          </div>
+          <button class="btn-danger" style="padding:4px 10px;font-size:11px;" onclick="deleteActivity(${a.id})">✕</button>
+        </div>`).join('') : `<div style="color:var(--muted);font-size:13px;padding:8px 0;font-style:italic;">No activities planned. Add one!</div>`}
+    </div>`;
+  }
+  days.innerHTML = html || `<div class="empty-state"><div class="empty-icon">📅</div><h3>No days to show</h3></div>`;
+  // Populate day select
+  const sel = document.getElementById('activity-day');
+  sel.innerHTML = '';
+  for (let d = 1; d <= nights; d++) sel.innerHTML += `<option value="${d}">Day ${d}</option>`;
+}
+
+function addActivity() {
+  const day = parseInt(document.getElementById('activity-day').value);
+  const time = document.getElementById('activity-time').value;
+  const name = document.getElementById('activity-name').value.trim();
+  const type = document.getElementById('activity-type').value;
+  const duration = document.getElementById('activity-duration').value.trim();
+  const notes = document.getElementById('activity-notes').value.trim();
+  if (!name) { showToast('Activity name required', 'error'); return; }
+  state.activities.push({ id: Date.now(), tripId: state.selectedTripId, day, time, name, type, duration, notes });
+  closeModal('modal-add-activity');
+  showToast('Activity added ✓', 'success');
+  renderItinerary();
+  document.getElementById('activity-name').value = '';
+  document.getElementById('activity-notes').value = '';
+  document.getElementById('activity-duration').value = '';
+}
+
+function deleteActivity(id) {
+  state.activities = state.activities.filter(a => a.id !== id);
+  renderItinerary();
+  showToast('Activity removed', '');
+}
+
+// ─── DOCUMENTS ────────────────────────────────────────────────────
+function renderDocuments() {
+  const docs = state.documents.filter(d => d.userId === state.currentUser.id);
+  const grid = document.getElementById('doc-grid');
+  if (!docs.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">📁</div><h3>No documents</h3><p>Upload visa copies, tickets, etc.</p></div>`;
+    return;
+  }
+  grid.innerHTML = docs.map(d => `
+    <div class="doc-card">
+      <div class="doc-icon">${d.type}</div>
+      <div class="doc-name">${d.name}</div>
+      <div class="doc-size">${d.size}</div>
+      <div style="margin-top:10px;display:flex;gap:6px;justify-content:center;">
+        <button class="btn-secondary" style="font-size:11px;padding:4px 10px;" onclick="showToast('Download simulated ✓','success')">Download</button>
+        <button class="btn-danger" style="font-size:11px;padding:4px 10px;" onclick="deleteDoc(${d.id})">✕</button>
+      </div>
+    </div>`).join('');
+}
+
+function uploadDoc() {
+  const name = document.getElementById('doc-name').value.trim();
+  const type = document.getElementById('doc-type').value;
+  if (!name) { showToast('Document name required', 'error'); return; }
+  const doc = { id: Date.now(), userId: state.currentUser.id, name, type, size: `${(Math.random()*2+0.3).toFixed(1)} MB`, date: new Date().toISOString().split('T')[0] };
+  state.documents.push(doc);
+  closeModal('modal-upload-doc');
+  showToast('Document uploaded ✓', 'success');
+  renderDocuments();
+  refreshUserStats();
+  document.getElementById('doc-name').value = '';
+}
+
+function deleteDoc(id) {
+  state.documents = state.documents.filter(d => d.id !== id);
+  renderDocuments();
+  refreshUserStats();
+  showToast('Document removed', '');
+}
+
+// ─── PACKING LIST ──────────────────────────────────────────────────
+function renderPacking() {
+  const items = state.packingItems.filter(i => i.userId === state.currentUser.id);
+  const area = document.getElementById('packing-list-area');
+  if (!items.length) {
+    area.innerHTML = `<div class="empty-state"><div class="empty-icon">🎒</div><h3>Empty packing list</h3><p>Add items to pack!</p></div>`;
+    return;
+  }
+  const categories = [...new Set(items.map(i => i.category))];
+  area.innerHTML = categories.map(cat => {
+    const catItems = items.filter(i => i.category === cat);
+    const done = catItems.filter(i => i.checked).length;
+    return `<div class="card packing-category">
+      <div class="packing-category-title">${cat} <span style="color:var(--muted);font-weight:400;font-size:12px;">(${done}/${catItems.length})</span></div>
+      ${catItems.map(item => `
+        <div class="packing-item">
+          <input type="checkbox" id="pack-${item.id}" ${item.checked ? 'checked' : ''} onchange="togglePack(${item.id}, this.checked)"/>
+          <label for="pack-${item.id}" class="${item.checked ? 'checked' : ''}">${item.name}</label>
+          <button class="btn-danger" style="padding:3px 8px;font-size:11px;margin-left:auto;" onclick="deletePackItem(${item.id})">✕</button>
+        </div>`).join('')}
+    </div>`;
+  }).join('');
+}
+
+function addPackingItem() {
+  const cat = document.getElementById('item-category').value;
+  const name = document.getElementById('item-name').value.trim();
+  if (!name) { showToast('Item name required', 'error'); return; }
+  state.packingItems.push({ id: Date.now(), userId: state.currentUser.id, category: cat, name, checked: false });
+  closeModal('modal-add-item');
+  showToast('Item added ✓', 'success');
+  renderPacking();
+  document.getElementById('item-name').value = '';
+}
+
+function togglePack(id, checked) {
+  const item = state.packingItems.find(i => i.id === id);
+  if (item) item.checked = checked;
+  renderPacking();
+}
+
+function deletePackItem(id) {
+  state.packingItems = state.packingItems.filter(i => i.id !== id);
+  renderPacking();
+}
+
+// ─── REMINDERS ────────────────────────────────────────────────────
+function checkReminder() {
+  const u = state.currentUser;
+  const now = new Date();
+  const in48 = new Date(now.getTime() + 48 * 3600000);
+  const area = document.getElementById('reminder-area');
+  const upcomingTrips = state.trips.filter(t => {
+    if (t.userId !== u.id) return false;
+    const dep = new Date(t.departure);
+    return dep >= now && dep <= in48;
+  });
+  if (upcomingTrips.length) {
+    area.innerHTML = upcomingTrips.map(t => `
+      <div class="reminder-banner" style="margin-bottom:16px;">
+        <div class="reminder-icon">🔔</div>
+        <div class="reminder-text">
+          <h3>Departure Reminder: ${t.destination}</h3>
+          <p>Your trip departs on ${formatDate(t.departure)}. Don't forget to pack! We've sent a packing reminder to your email.</p>
+        </div>
+      </div>`).join('');
+  } else {
+    area.innerHTML = '';
+  }
+}
+
+function runReminderCheck() {
+  const now = new Date();
+  const window48 = new Date(now.getTime() + 48 * 3600000);
+  let sent = 0;
+  state.trips.forEach(trip => {
+    const dep = new Date(trip.departure);
+    if (dep >= now && dep <= window48) {
+      const user = state.users.find(u => u.id === trip.userId);
+      if (user) {
+        state.reminderLog.push({ user: user.name, trip: trip.destination, departure: trip.departure, sentAt: now.toLocaleString(), status: '✅ Sent' });
+        state.reminderCount++;
+        sent++;
+      }
+    }
+  });
+  document.getElementById('last-run-time').textContent = now.toLocaleTimeString();
+  document.getElementById('emails-sent-count').textContent = state.reminderCount;
+  showToast(sent > 0 ? `${sent} reminder(s) sent!` : 'No upcoming trips in 48-hour window', sent > 0 ? 'success' : '');
+  refreshAdminStats();
+  renderReminderLog();
+}
+
+function renderReminderLog() {
+  const tbody = document.getElementById('reminder-log');
+  if (!state.reminderLog.length) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:24px;">No reminders sent yet. Run a check to trigger.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = state.reminderLog.slice().reverse().map(r => `
+    <tr>
+      <td>${r.user}</td>
+      <td>${r.trip}</td>
+      <td>${formatDate(r.departure)}</td>
+      <td style="font-size:12px;">${r.sentAt}</td>
+      <td>${r.status}</td>
+    </tr>`).join('');
+}
+
+// ─── ADMIN TABLES ──────────────────────────────────────────────────
+function renderAdminRecentUsers() {
+  const users = state.users.filter(u => u.role === 'user').slice(-4).reverse();
+  document.getElementById('admin-recent-users').innerHTML = users.map(u => {
+    const trips = state.trips.filter(t => t.userId === u.id).length;
+    return `<tr>
+      <td><strong>${u.name}</strong></td>
+      <td style="color:var(--muted);">${u.email}</td>
+      <td>${formatDate(u.joined)}</td>
+      <td>${trips}</td>
+      <td><span class="status-dot ${u.active ? 'active' : 'inactive'}"></span> ${u.active ? 'Active' : 'Inactive'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderAdminUsers() {
+  const users = state.users.filter(u => u.role === 'user');
+  document.getElementById('admin-users-table').innerHTML = users.map(u => {
+    const trips = state.trips.filter(t => t.userId === u.id).length;
+    return `<tr>
+      <td><strong>${u.name}</strong></td>
+      <td style="color:var(--muted);">${u.email}</td>
+      <td>${formatDate(u.joined)}</td>
+      <td>${trips}</td>
+      <td><span class="status-dot ${u.active ? 'active' : 'inactive'}"></span> ${u.active ? 'Active' : 'Inactive'}</td>
+      <td>
+        <button class="btn-secondary" style="font-size:12px;padding:5px 12px;" onclick="toggleUser(${u.id})">${u.active ? 'Suspend' : 'Activate'}</button>
+        <button class="btn-danger" style="font-size:12px;padding:5px 12px;margin-left:4px;" onclick="adminDeleteUser(${u.id})">Delete</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function toggleUser(id) {
+  const u = state.users.find(u => u.id === id);
+  if (u) { u.active = !u.active; showToast(`User ${u.active ? 'activated' : 'suspended'}`, u.active ? 'success' : ''); }
+  renderAdminUsers();
+  renderAdminRecentUsers();
+}
+
+function adminDeleteUser(id) {
+  if (!confirm('Permanently delete this user and all their data?')) return;
+  state.users = state.users.filter(u => u.id !== id);
+  state.trips = state.trips.filter(t => t.userId !== id);
+  state.documents = state.documents.filter(d => d.userId !== id);
+  state.packingItems = state.packingItems.filter(i => i.userId !== id);
+  showToast('User deleted', '');
+  renderAdminUsers();
+  refreshAdminStats();
+}
+
+function renderAdminTrips() {
+  const tbody = document.getElementById('admin-trips-table');
+  if (!state.trips.length) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px;">No trips yet</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = state.trips.map(t => {
+    const user = state.users.find(u => u.id === t.userId);
+    const nights = Math.round((new Date(t.returnDate) - new Date(t.departure)) / 86400000);
+    return `<tr>
+      <td><strong>${t.emoji} ${t.destination}</strong></td>
+      <td>${user ? user.name : 'Unknown'}</td>
+      <td>${formatDate(t.departure)}</td>
+      <td>${formatDate(t.returnDate)}</td>
+      <td>${nights}</td>
+      <td><button class="btn-danger" style="font-size:12px;padding:5px 12px;" onclick="adminDeleteTrip(${t.id})">Delete</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function adminDeleteTrip(id) {
+  if (!confirm('Delete this trip?')) return;
+  state.trips = state.trips.filter(t => t.id !== id);
+  renderAdminTrips();
+  refreshAdminStats();
+  showToast('Trip deleted', '');
+}
+
+// ─── TIMELINE ─────────────────────────────────────────────────────
+function renderTimeline() {
+  const events = [
+    { date: 'Today', text: `Logged into WanderNest as ${state.currentUser.name}` },
+    ...state.trips.filter(t => t.userId === state.currentUser.id).map(t => ({ date: t.departure, text: `Trip to ${t.destination} planned` })),
+    ...state.documents.filter(d => d.userId === state.currentUser.id).map(d => ({ date: d.date, text: `Uploaded: ${d.name}` })),
+  ].slice(0, 5);
+  const tl = document.getElementById('user-activity-timeline');
+  tl.innerHTML = events.length ? events.map(e => `
+    <div class="timeline-item">
+      <div class="timeline-dot"></div>
+      <div class="timeline-content">
+        <div class="timeline-date">${e.date === 'Today' ? 'Today' : formatDate(e.date)}</div>
+        <div class="timeline-text">${e.text}</div>
+      </div>
+    </div>`).join('') : `<div style="color:var(--muted);font-size:13px;font-style:italic;">No activity yet. Create a trip to get started!</div>`;
+}
+
+// ─── MODALS ───────────────────────────────────────────────────────
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); }));
+
+// ─── TOAST ────────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `show ${type}`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.className = '', 3000);
+}
+
+// ─── HELPERS ─────────────────────────────────────────────────────
+function formatDate(str) {
+  if (!str) return '—';
+  const d = new Date(str + 'T00:00:00');
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+</script>
+</body>
+</html>
